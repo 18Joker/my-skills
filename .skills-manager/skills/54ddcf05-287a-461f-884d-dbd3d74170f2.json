@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "skill_id": "54ddcf05-287a-461f-884d-dbd3d74170f2",
+  "path": "ui-ux-pro-max-2",
+  "path_key": "ui-ux-pro-max-2",
+  "enabled": true,
+  "tags": [],
+  "source": {
+    "type": "import",
+    "ref": null,
+    "subpath": null,
+    "branch": null
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "skill_id": "6c252c6b-5de6-42ec-96de-934fe2ef81be",
+  "path": "hyperframes",
+  "path_key": "hyperframes",
+  "enabled": true,
+  "tags": [],
+  "source": {
+    "type": "import",
+    "ref": null,
+    "subpath": null,
+    "branch": null
+  }
+}

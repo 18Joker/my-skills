@@ -1,0 +1,39 @@
+{
+  "schema_version": "1.1",
+  "id": "sk_Ses9x1hZoKtH",
+  "name": "remotion-video-toolkit",
+  "namespace": "clawhub",
+  "display_name": "Remotion 视频创作",
+  "display_name_en": "Remotion Video Toolkit",
+  "description_zh": "用 React + Remotion 编写代码生成程序化视频，支持动画、字幕、3D、云端渲染",
+  "description_en": "Programmatic video creation with Remotion + React: animations, rendering, captions, 3D, cloud rendering",
+  "icon": "letter:auto",
+  "examples_zh": [
+    "帮我用 Remotion 做一个数据可视化视频模板",
+    "生成一段带动画字幕的产品介绍视频代码",
+    "我想批量渲染个性化视频，怎么搭建 pipeline",
+    "用 Remotion Lambda 部署云端视频渲染"
+  ],
+  "examples_en": [
+    "Create a data visualization video template with Remotion",
+    "Build a product intro video with animated captions",
+    "How do I set up a pipeline to render personalized videos at scale?",
+    "Deploy cloud video rendering with Remotion Lambda"
+  ],
+  "category": "creation",
+  "tags_zh": [
+    "内容创作"
+  ],
+  "tags_en": [
+    "Content Creation"
+  ],
+  "current_version": "1.4.0",
+  "clawhub_slug": "remotion-video-toolkit",
+  "skillhub_slug": null,
+  "git_url": null,
+  "homepage": null,
+  "edition_mode": "all",
+  "tenant_mode": "all",
+  "featured": 0,
+  "preinstalled": 0
+}

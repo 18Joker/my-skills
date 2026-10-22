@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "skill_id": "d78e8e68-12a8-47d8-8d9a-de2588ba4964",
+  "path": "mini-program-dev",
+  "path_key": "mini-program-dev",
+  "enabled": true,
+  "tags": [],
+  "source": {
+    "type": "import",
+    "ref": null,
+    "subpath": null,
+    "branch": null
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "skill_id": "6872cdf0-19c2-4341-968d-d609b163e37b",
+  "path": "qoderwork-guidance",
+  "path_key": "qoderwork-guidance",
+  "enabled": true,
+  "tags": [],
+  "source": {
+    "type": "import",
+    "ref": null,
+    "subpath": null,
+    "branch": null
+  }
+}

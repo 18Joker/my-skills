@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "skill_id": "b82fd3ac-4bd9-4599-be1e-900f369b9951",
+  "path": "ui-designer-2",
+  "path_key": "ui-designer-2",
+  "enabled": true,
+  "tags": [],
+  "source": {
+    "type": "import",
+    "ref": null,
+    "subpath": null,
+    "branch": null
+  }
+}

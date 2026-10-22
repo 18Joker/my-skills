@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "skill_id": "f7bd3c27-4628-4de3-b408-b6eaeb702ec4",
+  "path": "cloudbase",
+  "path_key": "cloudbase",
+  "enabled": true,
+  "tags": [],
+  "source": {
+    "type": "import",
+    "ref": null,
+    "subpath": null,
+    "branch": null
+  }
+}

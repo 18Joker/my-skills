@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "skill_id": "b25ce388-ca7c-4672-9a71-c6c4224b72b4",
+  "path": "personal-virtual-payment",
+  "path_key": "personal-virtual-payment",
+  "enabled": true,
+  "tags": [],
+  "source": {
+    "type": "import",
+    "ref": null,
+    "subpath": null,
+    "branch": null
+  }
+}

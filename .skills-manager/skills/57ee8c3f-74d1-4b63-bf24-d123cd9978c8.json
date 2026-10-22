@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "skill_id": "57ee8c3f-74d1-4b63-bf24-d123cd9978c8",
+  "path": "analyze-code",
+  "path_key": "analyze-code",
+  "enabled": true,
+  "tags": [],
+  "source": {
+    "type": "import",
+    "ref": null,
+    "subpath": null,
+    "branch": null
+  }
+}

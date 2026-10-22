@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "skill_id": "29f80616-5105-49fc-9802-1643c1944f27",
+  "path": "remotion-video-toolkit",
+  "path_key": "remotion-video-toolkit",
+  "enabled": true,
+  "tags": [],
+  "source": {
+    "type": "import",
+    "ref": null,
+    "subpath": null,
+    "branch": null
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "skill_id": "168387b4-6375-42af-b633-c542c83743d6",
+  "path": "continuous-agent-loop-2",
+  "path_key": "continuous-agent-loop-2",
+  "enabled": true,
+  "tags": [],
+  "source": {
+    "type": "import",
+    "ref": null,
+    "subpath": null,
+    "branch": null
+  }
+}

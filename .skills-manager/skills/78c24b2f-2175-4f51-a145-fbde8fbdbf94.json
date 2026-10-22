@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "skill_id": "78c24b2f-2175-4f51-a145-fbde8fbdbf94",
+  "path": "vm-error-recovery",
+  "path_key": "vm-error-recovery",
+  "enabled": true,
+  "tags": [],
+  "source": {
+    "type": "import",
+    "ref": null,
+    "subpath": null,
+    "branch": null
+  }
+}

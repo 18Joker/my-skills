@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "skill_id": "ca3f85fb-2b46-477d-b4e2-657a2c08a0c5",
+  "path": "vue",
+  "path_key": "vue",
+  "enabled": true,
+  "tags": [],
+  "source": {
+    "type": "import",
+    "ref": null,
+    "subpath": null,
+    "branch": null
+  }
+}

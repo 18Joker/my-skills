@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "skill_id": "56ea543b-461e-458f-9331-739bce6b4683",
+  "path": "web-design-guidelines",
+  "path_key": "web-design-guidelines",
+  "enabled": true,
+  "tags": [],
+  "source": {
+    "type": "import",
+    "ref": null,
+    "subpath": null,
+    "branch": null
+  }
+}

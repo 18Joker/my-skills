@@ -1,0 +1,25 @@
+{
+  "name": "Remotion 视频创作",
+  "installedAt": 1792280765233,
+  "source": "marketplace",
+  "version": "1.0.2",
+  "skillId": "skill_2053083805713256448",
+  "pay_mode": 0,
+  "examples_zh": [
+    "帮我用 Remotion 做一个数据可视化视频模板",
+    "生成一段带动画字幕的产品介绍视频代码",
+    "我想批量渲染个性化视频，怎么搭建 pipeline",
+    "用 Remotion Lambda 部署云端视频渲染"
+  ],
+  "examples_en": [
+    "Create a data visualization video template with Remotion",
+    "Build a product intro video with animated captions",
+    "How do I set up a pipeline to render personalized videos at scale?",
+    "Deploy cloud video rendering with Remotion Lambda"
+  ],
+  "description_zh": "用 React + Remotion 编写代码生成程序化视频，支持动画、字幕、3D、云端渲染",
+  "description_en": "Programmatic video creation with Remotion + React: animations, rendering, captions, 3D, cloud rendering",
+  "iconSource": "https://openplatform-cdn.codebuddy.ai/public/operation-platform/skill-icons/skill_2053083805713256448/45499762e7bc3866.png",
+  "iconLocalPath": "C:\\Users\\22322\\.workbuddy-ai\\skills\\remotion-video-toolkit\\_icon.png",
+  "iconDownloadedFrom": "https://openplatform-cdn.codebuddy.ai/public/operation-platform/skill-icons/skill_2053083805713256448/45499762e7bc3866.png"
+}

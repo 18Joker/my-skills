@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "skill_id": "538a3725-1791-4531-bbc7-e6498de4be06",
+  "path": "computer-use-guidance-windows",
+  "path_key": "computer-use-guidance-windows",
+  "enabled": true,
+  "tags": [],
+  "source": {
+    "type": "import",
+    "ref": null,
+    "subpath": null,
+    "branch": null
+  }
+}

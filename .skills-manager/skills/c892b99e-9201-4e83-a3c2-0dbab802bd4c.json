@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "skill_id": "c892b99e-9201-4e83-a3c2-0dbab802bd4c",
+  "path": "announcement-generator",
+  "path_key": "announcement-generator",
+  "enabled": true,
+  "tags": [],
+  "source": {
+    "type": "import",
+    "ref": null,
+    "subpath": null,
+    "branch": null
+  }
+}
