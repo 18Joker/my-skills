@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "skill_id": "2e22f7cf-7104-4430-b27b-7164963300f9",
+  "path": "manage-skills",
+  "path_key": "manage-skills",
+  "enabled": true,
+  "tags": [],
+  "source": {
+    "type": "git",
+    "ref": "https://github.com/xingkongliang/skills-manager/tree/main/skills/manage-skills",
+    "subpath": "skills/manage-skills",
+    "branch": "main"
+  }
+}
