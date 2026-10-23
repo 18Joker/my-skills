@@ -4,3 +4,4 @@ Thumbs.db
 .skills-manager.lock
 __pycache__/
 *.pyc
+.idea
