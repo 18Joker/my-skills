@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "skill_id": "7305c2cf-7319-4627-86a1-370f08901419",
+  "path": "vue-best-practices",
+  "path_key": "vue-best-practices",
+  "enabled": true,
+  "tags": [],
+  "source": {
+    "type": "skillssh",
+    "ref": "vuejs-ai/skills/vue-best-practices",
+    "subpath": "skills\\vue-best-practices",
+    "branch": null
+  }
+}
