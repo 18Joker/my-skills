@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "skill_id": "ff2abbbe-d177-44ce-ad20-5c66b0682f56",
+  "path": "azure-ai",
+  "path_key": "azure-ai",
+  "enabled": true,
+  "tags": [],
+  "source": {
+    "type": "skillssh",
+    "ref": "microsoft/azure-skills/azure-ai",
+    "subpath": "skills\\azure-ai",
+    "branch": null
+  }
+}
