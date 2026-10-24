@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "skill_id": "60d43294-681e-4fb2-bd1f-44f801b1beaf",
+  "path": "screenshot-to-code",
+  "path_key": "screenshot-to-code",
+  "enabled": true,
+  "tags": [],
+  "source": {
+    "type": "skillssh",
+    "ref": "onewave-ai/claude-skills/screenshot-to-code",
+    "subpath": "screenshot-to-code",
+    "branch": null
+  }
+}
