@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "skill_id": "cdc84cf6-7e09-4362-9bbc-f158764f78df",
+  "path": "video-shotcraft",
+  "path_key": "video-shotcraft",
+  "enabled": true,
+  "tags": [],
+  "source": {
+    "type": "skillssh",
+    "ref": "vincentwei1021/video-shotcraft/video-shotcraft",
+    "subpath": null,
+    "branch": null
+  }
+}
