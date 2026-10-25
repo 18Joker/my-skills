@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "skill_id": "f1d43249-f9e8-4b69-8ae2-d2a335076a05",
+  "path": "dbs",
+  "path_key": "dbs",
+  "enabled": true,
+  "tags": [],
+  "source": {
+    "type": "skillssh",
+    "ref": "dontbesilent2025/dbskill/dbs",
+    "subpath": "skills\\dbs",
+    "branch": null
+  }
+}
