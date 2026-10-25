@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "skill_id": "1af068af-035e-4d33-a2dc-c94761bd5b36",
+  "path": "dbs-video-navigation",
+  "path_key": "dbs-video-navigation",
+  "enabled": true,
+  "tags": [],
+  "source": {
+    "type": "skillssh",
+    "ref": "dontbesilent2025/dbskill/dbs-video-navigation",
+    "subpath": "skills\\dbs-video-navigation",
+    "branch": null
+  }
+}

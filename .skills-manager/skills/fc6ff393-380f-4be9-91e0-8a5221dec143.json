@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "skill_id": "fc6ff393-380f-4be9-91e0-8a5221dec143",
+  "path": "dbs-plain-writing",
+  "path_key": "dbs-plain-writing",
+  "enabled": true,
+  "tags": [],
+  "source": {
+    "type": "skillssh",
+    "ref": "dontbesilent2025/dbskill/dbs-plain-writing",
+    "subpath": "skills\\dbs-plain-writing",
+    "branch": null
+  }
+}

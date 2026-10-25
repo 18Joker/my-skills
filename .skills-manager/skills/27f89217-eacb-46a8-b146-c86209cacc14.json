@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "skill_id": "27f89217-eacb-46a8-b146-c86209cacc14",
+  "path": "dbs-video-extract",
+  "path_key": "dbs-video-extract",
+  "enabled": true,
+  "tags": [],
+  "source": {
+    "type": "skillssh",
+    "ref": "dontbesilent2025/dbskill/dbs-video-extract",
+    "subpath": "skills\\dbs-video-extract",
+    "branch": null
+  }
+}

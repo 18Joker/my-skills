@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "skill_id": "481dbdef-0e08-4cd4-a200-aab65ea5a048",
+  "path": "dbs-benchmark",
+  "path_key": "dbs-benchmark",
+  "enabled": true,
+  "tags": [],
+  "source": {
+    "type": "skillssh",
+    "ref": "dontbesilent2025/dbskill/dbs-benchmark",
+    "subpath": "skills\\dbs-benchmark",
+    "branch": null
+  }
+}

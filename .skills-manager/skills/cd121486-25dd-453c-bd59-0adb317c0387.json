@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "skill_id": "cd121486-25dd-453c-bd59-0adb317c0387",
+  "path": "dbs-resonate",
+  "path_key": "dbs-resonate",
+  "enabled": true,
+  "tags": [],
+  "source": {
+    "type": "skillssh",
+    "ref": "dontbesilent2025/dbskill/dbs-resonate",
+    "subpath": "skills\\dbs-resonate",
+    "branch": null
+  }
+}

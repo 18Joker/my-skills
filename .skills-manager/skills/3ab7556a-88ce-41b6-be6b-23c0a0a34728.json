@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "skill_id": "3ab7556a-88ce-41b6-be6b-23c0a0a34728",
+  "path": "dbs-content-risk-check",
+  "path_key": "dbs-content-risk-check",
+  "enabled": true,
+  "tags": [],
+  "source": {
+    "type": "skillssh",
+    "ref": "dontbesilent2025/dbskill/dbs-content-risk-check",
+    "subpath": "skills\\dbs-content-risk-check",
+    "branch": null
+  }
+}

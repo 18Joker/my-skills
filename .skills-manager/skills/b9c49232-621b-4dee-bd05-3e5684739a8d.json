@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "skill_id": "b9c49232-621b-4dee-bd05-3e5684739a8d",
+  "path": "dbs-title-cover-intro",
+  "path_key": "dbs-title-cover-intro",
+  "enabled": true,
+  "tags": [],
+  "source": {
+    "type": "skillssh",
+    "ref": "dontbesilent2025/dbskill/dbs-title-cover-intro",
+    "subpath": "skills\\dbs-title-cover-intro",
+    "branch": null
+  }
+}

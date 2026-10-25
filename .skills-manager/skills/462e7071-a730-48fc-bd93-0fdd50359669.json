@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "skill_id": "462e7071-a730-48fc-bd93-0fdd50359669",
+  "path": "dbs-ai-check",
+  "path_key": "dbs-ai-check",
+  "enabled": true,
+  "tags": [],
+  "source": {
+    "type": "skillssh",
+    "ref": "dontbesilent2025/dbskill/dbs-ai-check",
+    "subpath": "skills\\dbs-ai-check",
+    "branch": null
+  }
+}

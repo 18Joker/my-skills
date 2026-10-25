@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "skill_id": "a439ba4b-4bdb-4225-acc4-851b1d13b9bc",
+  "path": "dbs-content-system",
+  "path_key": "dbs-content-system",
+  "enabled": true,
+  "tags": [],
+  "source": {
+    "type": "skillssh",
+    "ref": "dontbesilent2025/dbskill/dbs-content-system",
+    "subpath": "skills\\dbs-content-system",
+    "branch": null
+  }
+}

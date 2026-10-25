@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "skill_id": "6779195d-b814-4c0f-94f8-eade70f6d487",
+  "path": "dbs-spread",
+  "path_key": "dbs-spread",
+  "enabled": true,
+  "tags": [],
+  "source": {
+    "type": "skillssh",
+    "ref": "dontbesilent2025/dbskill/dbs-spread",
+    "subpath": "skills\\dbs-spread",
+    "branch": null
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "skill_id": "068edb69-c887-4da9-9069-a2d974db4713",
+  "path": "dbs-script-flow",
+  "path_key": "dbs-script-flow",
+  "enabled": true,
+  "tags": [],
+  "source": {
+    "type": "skillssh",
+    "ref": "dontbesilent2025/dbskill/dbs-script-flow",
+    "subpath": "skills\\dbs-script-flow",
+    "branch": null
+  }
+}
