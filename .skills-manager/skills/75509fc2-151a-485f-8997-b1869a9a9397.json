@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "skill_id": "75509fc2-151a-485f-8997-b1869a9a9397",
+  "path": "visual-replica-workflow",
+  "path_key": "visual-replica-workflow",
+  "enabled": true,
+  "tags": [],
+  "source": {
+    "type": "local",
+    "ref": null,
+    "subpath": null,
+    "branch": null
+  }
+}
