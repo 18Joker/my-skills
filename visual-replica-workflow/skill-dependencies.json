@@ -1,0 +1,174 @@
+{
+  "schema_version": "1",
+  "capabilities": [
+    "visual-analysis",
+    "asset-preparation",
+    "frontend-implementation",
+    "browser-screenshot",
+    "image-comparison",
+    "acceptance-delivery"
+  ],
+  "dependencies": [
+    {
+      "id": "python-runtime",
+      "type": "runtime",
+      "required": false,
+      "auth_type": "none",
+      "capabilities": [
+        "browser-screenshot",
+        "image-comparison"
+      ],
+      "checks": [
+        {
+          "id": "python-version",
+          "type": "python",
+          "required": true,
+          "min_version": "3.10"
+        }
+      ],
+      "setup": {
+        "official_home_url": "https://www.python.org/downloads/",
+        "official_docs_url": "https://docs.python.org/3/using/windows.html",
+        "download_url": "https://www.python.org/downloads/",
+        "steps": [
+          "由用户从 Python 官方下载页安装适合当前系统的 Python 3.10 或更高版本",
+          "按官方文档确认 python 命令可用",
+          "重新运行只读环境检查"
+        ],
+        "verify": "python --version，并运行 scripts/check_environment.py",
+        "rotate_or_revoke": "无凭据可轮换；可由用户通过操作系统卸载或撤销目录权限",
+        "security": "不需要账号或凭据；技能不自动下载或安装 Python",
+        "verified_at": "2026-10-28",
+        "applies_to_version": "Python 3.10 及以上的 3.x"
+      },
+      "degradation": [
+        {
+          "capability": "browser-screenshot",
+          "trigger": "Python 缺失或版本低于 3.10",
+          "fallback": "改用宿主浏览器自动化或用户手动同视口截图",
+          "user_input": "当前页面截图或可用的浏览器工具",
+          "limitations": "自带截图脚本未执行，不能声称自动截图成功",
+          "evidence_label": "未验证",
+          "recovery": "安装符合版本的 Python 后重新检查并截图",
+          "stop_condition": "用户要求自动截图证据但没有任何可用截图方式"
+        },
+        {
+          "capability": "image-comparison",
+          "trigger": "Python 缺失或版本低于 3.10",
+          "fallback": "保留两张同视口图片并进行人工分区对比",
+          "user_input": "参考图和当前截图",
+          "limitations": "不生成叠加图、差异图或像素统计",
+          "evidence_label": "未验证",
+          "recovery": "安装符合版本的 Python 后重新运行对比",
+          "stop_condition": "用户必须要求机器差异图且无法提供 Python 环境"
+        }
+      ]
+    },
+    {
+      "id": "chromium-browser",
+      "type": "local-tool",
+      "required": false,
+      "auth_type": "none",
+      "capabilities": [
+        "browser-screenshot"
+      ],
+      "checks": [
+        {
+          "id": "chrome-on-path",
+          "type": "cli",
+          "required": false,
+          "command": "chrome"
+        }
+      ],
+      "setup": {
+        "official_home_url": "https://www.google.cn/intl/zh-CN/chrome/",
+        "official_docs_url": "https://developer.chrome.com/docs/chromium/headless?hl=en",
+        "download_url": "https://www.google.cn/intl/zh-CN/chrome/",
+        "steps": [
+          "优先使用宿主已有浏览器自动化能力",
+          "需要独立脚本时，由用户从官方页面安装支持无头模式的 Chrome 或 Chromium",
+          "对用户批准的本地测试页进行固定视口截图"
+        ],
+        "verify": "确认浏览器可启动，并对批准的测试页生成 PNG；PATH 检查不代表常见安装位置检测失败",
+        "rotate_or_revoke": "无凭据可轮换；关闭截图进程或由用户卸载浏览器、撤销目录权限",
+        "security": "使用临时隔离资料目录，不读取个人浏览器资料；URL 不得包含凭据",
+        "verified_at": "2026-10-28",
+        "applies_to_version": "支持当前无头模式、--screenshot 和 --window-size 的 Chrome 或 Chromium"
+      },
+      "degradation": [
+        {
+          "capability": "browser-screenshot",
+          "trigger": "浏览器缺失、启动失败、超时或版本不兼容",
+          "fallback": "使用宿主其他浏览器能力，或提供手动同视口截图步骤",
+          "user_input": "同视口 PNG 或可用浏览器",
+          "limitations": "自动截图未完成，视觉验收不能据此判为通过",
+          "evidence_label": "未验证",
+          "recovery": "恢复浏览器或改用可用工具后重新截图",
+          "stop_condition": "必须自动截图但所有浏览器方式均不可用"
+        }
+      ]
+    }
+  ],
+  "functional_degradations": [
+    {
+      "capability": "visual-analysis",
+      "trigger": "参考图不可读、宿主无图像理解能力或关键区域无法辨认",
+      "fallback": "使用用户提供并已核验的分析规格，或只输出待确认问题",
+      "user_input": "可读参考图或可靠分析 JSON",
+      "limitations": "无法读取的部分不猜测，相关坐标和文字标为未验证",
+      "evidence_label": "未验证",
+      "recovery": "提供可读图片或可靠规格后重新分析",
+      "stop_condition": "没有图片或可靠规格且任务依赖视觉内容"
+    },
+    {
+      "capability": "asset-preparation",
+      "trigger": "原图无法提取、抠图工具不可用或独立素材缺失",
+      "fallback": "优先保留可提取素材；其余记录缺口，经用户同意后近似重建",
+      "user_input": "原始素材或是否接受近似重建的决定",
+      "limitations": "近似素材不代表原始外观，必须单独标记",
+      "evidence_label": "部分验证",
+      "recovery": "获得原素材或合适处理工具后替换并重新截图",
+      "stop_condition": "只能近似重建但用户不同意"
+    },
+    {
+      "capability": "frontend-implementation",
+      "trigger": "项目依赖缺失、文件权限不足或页面无法启动",
+      "fallback": "保留已生成源码、依赖说明和手动启动步骤",
+      "user_input": "可用项目目录、依赖环境或启动方式",
+      "limitations": "只完成静态实现，运行和视觉效果均未验证",
+      "evidence_label": "未验证",
+      "recovery": "修复权限或依赖后重新启动并验证",
+      "stop_condition": "用户要求可运行验收且无法修复运行环境"
+    },
+    {
+      "capability": "browser-screenshot",
+      "trigger": "页面无法启动、浏览器不可用或截图尺寸不符合目标",
+      "fallback": "给出手动截图步骤并使用用户提供的同视口 PNG",
+      "user_input": "可运行页面和同视口截图",
+      "limitations": "自动截图未执行，不进行跨尺寸像素比较",
+      "evidence_label": "未验证",
+      "recovery": "恢复页面与浏览器后按相同视口重新截图",
+      "stop_condition": "无法取得任何同视口实现截图"
+    },
+    {
+      "capability": "image-comparison",
+      "trigger": "输入不是支持的 PNG、尺寸不同、文件损坏或输出无权限",
+      "fallback": "保留输入并进行人工分区对比，不生成虚假对比文件",
+      "user_input": "同尺寸受支持 PNG 或可写输出目录",
+      "limitations": "没有机器叠加图、差异图和统计，视觉结论仍需人工判断",
+      "evidence_label": "未验证",
+      "recovery": "修正图片格式、尺寸或权限后重新比较",
+      "stop_condition": "输入无法可靠解码或尺寸关系无法确认"
+    },
+    {
+      "capability": "acceptance-delivery",
+      "trigger": "缺少运行、截图、素材或关键对比证据",
+      "fallback": "只交付结构版本和已有证据，列出未完成项与恢复步骤",
+      "user_input": "缺失证据或用户对降级交付的接受",
+      "limitations": "视觉验收保持未验证，不宣称 1:1 或像素级一致",
+      "evidence_label": "部分验证",
+      "recovery": "补齐运行和截图证据后重新验收",
+      "stop_condition": "用户要求完整视觉验收但关键证据无法取得"
+    }
+  ]
+}
