@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "skill_id": "97854954-0009-4e7a-bd69-9ffd5e908ea1",
+  "path": "pixel2motion",
+  "path_key": "pixel2motion",
+  "enabled": true,
+  "tags": [],
+  "source": {
+    "type": "skillssh",
+    "ref": "nolangz/pixel2motion/pixel2motion",
+    "subpath": null,
+    "branch": null
+  }
+}

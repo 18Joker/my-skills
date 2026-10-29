@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "skill_id": "c082ea64-187f-4a51-8e83-ec7edcb3bf1a",
+  "path": "anatomy",
+  "path_key": "anatomy",
+  "enabled": true,
+  "tags": [],
+  "source": {
+    "type": "skillssh",
+    "ref": "wheresryan22/anatomy/anatomy",
+    "subpath": null,
+    "branch": null
+  }
+}
