@@ -2,7 +2,9 @@
   "schema_version": "1",
   "capabilities": [
     "visual-analysis",
+    "reference-preprocessing",
     "asset-preparation",
+    "asset-inspection",
     "frontend-implementation",
     "browser-screenshot",
     "image-comparison",
@@ -15,6 +17,8 @@
       "required": false,
       "auth_type": "none",
       "capabilities": [
+        "reference-preprocessing",
+        "asset-inspection",
         "browser-screenshot",
         "image-comparison"
       ],
@@ -42,6 +46,26 @@
         "applies_to_version": "Python 3.10 及以上的 3.x"
       },
       "degradation": [
+        {
+          "capability": "reference-preprocessing",
+          "trigger": "Python 缺失或版本低于 3.10",
+          "fallback": "保留原图，由用户或图像编辑器人工添加网格并裁剪局部",
+          "user_input": "带网格副本、局部裁剪及对应原图坐标",
+          "limitations": "自动生成网格、区域裁剪和区域清单未执行，相关视觉细节标记未验证",
+          "evidence_label": "未验证",
+          "recovery": "安装符合版本的 Python 后重新运行预处理",
+          "stop_condition": "原图不可读且没有任何可用局部材料"
+        },
+        {
+          "capability": "asset-inspection",
+          "trigger": "Python 缺失或版本低于 3.10",
+          "fallback": "使用图像编辑器检查透明通道，并在深浅背景上人工验收素材",
+          "user_input": "透明通道信息、深浅背景预览或人工检查结果",
+          "limitations": "自动 Alpha 统计、内容边界和预览未生成，不得据此批准素材",
+          "evidence_label": "未验证",
+          "recovery": "安装符合版本的 Python 后重新检查素材",
+          "stop_condition": "素材透明状态无法确认且任务必须保证透明边缘正确"
+        },
         {
           "capability": "browser-screenshot",
           "trigger": "Python 缺失或版本低于 3.10",
@@ -119,6 +143,26 @@
       "evidence_label": "未验证",
       "recovery": "提供可读图片或可靠规格后重新分析",
       "stop_condition": "没有图片或可靠规格且任务依赖视觉内容"
+    },
+    {
+      "capability": "reference-preprocessing",
+      "trigger": "原图格式不支持、区域坐标越界、输出无权限或预处理脚本不可用",
+      "fallback": "保留原图，使用人工网格和局部裁剪，或只对原图进行分区分析",
+      "user_input": "受支持 PNG、有效区域坐标、可写目录或人工预处理材料",
+      "limitations": "没有自动网格、局部放大或机器区域清单的细节标为未验证",
+      "evidence_label": "未验证",
+      "recovery": "修正图片格式、区域坐标和权限后重新预处理",
+      "stop_condition": "原图不可读且没有可靠分析材料"
+    },
+    {
+      "capability": "asset-inspection",
+      "trigger": "素材不是受支持 PNG、文件损坏、输出无权限或检查脚本不可用",
+      "fallback": "使用图像编辑器检查透明通道，并在深浅背景上人工验收",
+      "user_input": "可读取素材、人工透明检查记录或深浅背景预览",
+      "limitations": "没有机器 Alpha 统计和内容边界时，不将素材标记为已完成自动检查",
+      "evidence_label": "未验证",
+      "recovery": "修正素材格式和权限后重新检查",
+      "stop_condition": "透明状态或边缘正确性无法确认且用户要求正式素材验收"
     },
     {
       "capability": "asset-preparation",

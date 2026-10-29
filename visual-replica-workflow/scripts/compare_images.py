@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import struct
 import sys
 import zlib
@@ -14,6 +15,8 @@ PNG_SIGNATURE = b"\x89PNG\r\n\x1a\n"
 CHANNELS = {0: 1, 2: 3, 3: 1, 4: 2, 6: 4}
 MAX_FILE_BYTES = 100 * 1024 * 1024
 MAX_PIXELS = 16_777_216
+MAX_REGIONS = 64
+ID_RE = re.compile(r"[a-z0-9][a-z0-9-]{0,63}", re.ASCII)
 
 
 def paeth(left: int, up: int, upper_left: int) -> int:
@@ -231,11 +234,64 @@ def compare(reference: bytes, current: bytes) -> tuple[bytes, bytes, dict[str, o
     return bytes(overlay), bytes(diff), report
 
 
+def crop_rgba(width: int, rgba: bytes, region: dict[str, int]) -> bytes:
+    x, y, region_width, height = region["x"], region["y"], region["width"], region["height"]
+    output = bytearray(region_width * height * 4)
+    for row in range(height):
+        source_start = ((y + row) * width + x) * 4
+        source_end = source_start + region_width * 4
+        output[row * region_width * 4:(row + 1) * region_width * 4] = rgba[source_start:source_end]
+    return bytes(output)
+
+
+def make_triptych(width: int, height: int, images: tuple[bytes, bytes, bytes]) -> tuple[int, int, bytes]:
+    gap = 4
+    output_width = width * 3 + gap * 2
+    output = bytearray(bytes((48, 48, 48, 255)) * (output_width * height))
+    for image_index, image in enumerate(images):
+        if len(image) != width * height * 4:
+            raise ValueError("局部三联图输入尺寸不一致")
+        start_x = image_index * (width + gap)
+        for y in range(height):
+            source_start = y * width * 4
+            target_start = (y * output_width + start_x) * 4
+            output[target_start:target_start + width * 4] = image[source_start:source_start + width * 4]
+    return output_width, height, bytes(output)
+
+
+def load_region_definitions(path: Path, width: int, height: int) -> list[dict[str, object]]:
+    data = json.loads(path.read_text(encoding="utf-8-sig"))
+    regions = data.get("regions") if isinstance(data, dict) else data
+    if not isinstance(regions, list) or not regions or len(regions) > MAX_REGIONS:
+        raise ValueError(f"区域文件必须包含 1 到 {MAX_REGIONS} 个区域")
+    validated: list[dict[str, object]] = []
+    seen: set[str] = set()
+    for item in regions:
+        if not isinstance(item, dict):
+            raise ValueError("每个区域必须是对象")
+        region_id = item.get("id")
+        if not isinstance(region_id, str) or not ID_RE.fullmatch(region_id) or region_id in seen:
+            raise ValueError("区域 ID 必须唯一，且只含小写字母、数字和连字符")
+        seen.add(region_id)
+        values: dict[str, int] = {}
+        for field in ("x", "y", "width", "height"):
+            value = item.get(field)
+            if isinstance(value, bool) or not isinstance(value, int):
+                raise ValueError(f"区域 {region_id} 的 {field} 必须是整数")
+            values[field] = value
+        x, y, region_width, region_height = values["x"], values["y"], values["width"], values["height"]
+        if x < 0 or y < 0 or region_width <= 0 or region_height <= 0 or x + region_width > width or y + region_height > height:
+            raise ValueError(f"区域 {region_id} 超出图片边界或尺寸无效")
+        validated.append({"id": region_id, **values})
+    return validated
+
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="对比两张同尺寸 PNG，生成叠加图、差异图和定位信息")
     parser.add_argument("--reference", required=True, type=Path)
     parser.add_argument("--current", required=True, type=Path)
     parser.add_argument("--output-dir", required=True, type=Path)
+    parser.add_argument("--regions", type=Path, help="可选区域清单，生成局部图片和定位信息")
     parser.add_argument("--overwrite", action="store_true", help="用户明确批准后覆盖已有输出文件")
     return parser.parse_args()
 
@@ -245,24 +301,34 @@ def main() -> int:
     try:
         reference_path = args.reference.expanduser().resolve()
         current_path = args.current.expanduser().resolve()
+        regions_path = args.regions.expanduser().resolve() if args.regions else None
         output_dir = args.output_dir.expanduser()
         if output_dir.exists() and not output_dir.is_dir():
             raise ValueError("输出目录路径已存在但不是目录")
+        width, height, reference = read_png(reference_path)
+        current_width, current_height, current = read_png(current_path)
+        if (width, height) != (current_width, current_height):
+            raise ValueError(f"图片尺寸不同：参考图 {width}x{height}，当前图 {current_width}x{current_height}")
+        regions = load_region_definitions(regions_path, width, height) if regions_path else []
         output_paths = {
             "overlay.png": output_dir / "overlay.png",
             "diff.png": output_dir / "diff.png",
             "comparison.json": output_dir / "comparison.json",
         }
-        resolved_outputs = [path.resolve() for path in output_paths.values()]
-        if reference_path in resolved_outputs or current_path in resolved_outputs:
-            raise ValueError("输出不得覆盖任一输入图片")
+        if regions:
+            output_paths["regions.json"] = output_dir / "regions.json"
+            for region in regions:
+                for filename in ("reference.png", "current.png", "diff.png", "triptych.png"):
+                    name = f"regions/{region['id']}/{filename}"
+                    output_paths[name] = output_dir / "regions" / str(region["id"]) / filename
+        protected_inputs = {reference_path, current_path}
+        if regions_path:
+            protected_inputs.add(regions_path)
         for path in output_paths.values():
+            if path.resolve() in protected_inputs:
+                raise ValueError("输出不得覆盖任一输入图片或区域清单")
             if path.exists() and not args.overwrite:
                 raise ValueError(f"输出已存在；未明确批准覆盖时停止：{path}")
-        width, height, reference = read_png(reference_path)
-        current_width, current_height, current = read_png(current_path)
-        if (width, height) != (current_width, current_height):
-            raise ValueError(f"图片尺寸不同：参考图 {width}x{height}，当前图 {current_width}x{current_height}")
         overlay, diff, metrics = compare(reference, current)
         report = {
             "reference": str(reference_path),
@@ -276,18 +342,48 @@ def main() -> int:
             "diff.png": encode_png(width, height, diff),
             "comparison.json": (json.dumps(report, ensure_ascii=False, indent=2) + "\n").encode("utf-8"),
         }
+        region_reports = []
+        for region in regions:
+            typed_region = {key: value for key, value in region.items() if key != "id"}
+            reference_crop = crop_rgba(width, reference, typed_region)  # type: ignore[arg-type]
+            current_crop = crop_rgba(width, current, typed_region)  # type: ignore[arg-type]
+            _, region_diff, region_metrics = compare(reference_crop, current_crop)
+            region_width, region_height = int(region["width"]), int(region["height"])
+            triptych_width, triptych_height, triptych = make_triptych(
+                region_width,
+                region_height,
+                (reference_crop, current_crop, region_diff),
+            )
+            base_name = f"regions/{region['id']}"
+            payloads[f"{base_name}/reference.png"] = encode_png(region_width, region_height, reference_crop)
+            payloads[f"{base_name}/current.png"] = encode_png(region_width, region_height, current_crop)
+            payloads[f"{base_name}/diff.png"] = encode_png(region_width, region_height, region_diff)
+            payloads[f"{base_name}/triptych.png"] = encode_png(triptych_width, triptych_height, triptych)
+            region_reports.append({**region, **region_metrics, "triptych": f"{base_name}/triptych.png"})
+        if regions:
+            region_report = {
+                "reference": str(reference_path),
+                "current": str(current_path),
+                "coordinateSpace": "source-pixels",
+                "interpretation": "区域指标只用于定位与安排检查顺序，不代表视觉质量或验收结论",
+                "regions": region_reports,
+            }
+            payloads["regions.json"] = (json.dumps(region_report, ensure_ascii=False, indent=2) + "\n").encode("utf-8")
         output_dir.mkdir(parents=True, exist_ok=True)
         for name, payload in payloads.items():
+            path = output_paths[name]
+            path.parent.mkdir(parents=True, exist_ok=True)
             mode = "wb" if args.overwrite else "xb"
-            with output_paths[name].open(mode) as stream:
+            with path.open(mode) as stream:
                 stream.write(payload)
         print(json.dumps({
             "status": "compared",
             "outputs": [str(path.resolve()) for path in output_paths.values()],
             "metrics": report,
+            "regionCount": len(regions),
         }, ensure_ascii=False, indent=2))
         return 0
-    except (OSError, ValueError, zlib.error, struct.error) as exc:
+    except (OSError, UnicodeError, json.JSONDecodeError, ValueError, zlib.error, struct.error) as exc:
         print(json.dumps({"status": "unavailable", "error": str(exc)}, ensure_ascii=False), file=sys.stderr)
         return 2
 

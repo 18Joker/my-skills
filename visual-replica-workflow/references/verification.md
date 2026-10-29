@@ -30,11 +30,21 @@ python scripts/capture_page.py --url "http://127.0.0.1:3000" --output "screensho
 python scripts/compare_images.py --reference "screenshots/reference.png" --current "screenshots/current.png" --output-dir "screenshots/comparison"
 ```
 
+复杂页面可附加预处理阶段生成的区域清单，输出局部核验材料：
+
+```bash
+python scripts/compare_images.py --reference "screenshots/reference.png" --current "screenshots/current.png" --output-dir "screenshots/comparison" --regions "reference/preprocessed/regions.json"
+```
+
 输出：
 
 - `overlay.png`：两张图各 50% 混合，位置不重合会出现双边轮廓。
 - `diff.png`：红色突出差异区域，灰度区域便于观察位置。
-- `comparison.json`：尺寸、差异像素数量和通道差值信息。
+- `comparison.json`：尺寸、整图差异和通道差值信息。
+- `regions.json`：各命名区域的差异定位信息。
+- `regions/`：各区域的原图、当前实现、差异图及三联图，便于局部诊断。
+
+区域指标只用于安排检查顺序，不能据此自动判定某个区域失败。区域清单坐标越界、图片尺寸变化或局部材料未生成时，明确报告，不静默拉伸或省略失败状态。
 
 这些数字只用于定位，不能等同视觉质量，也不能作为自动通过或否定方案的门槛。抗锯齿、字体渲染和合理细节调整都可能产生像素差异。
 
@@ -42,7 +52,7 @@ python scripts/compare_images.py --reference "screenshots/reference.png" --curre
 
 ## 分区核验
 
-整图复杂时，按标题、主面板、角色卡片、底部装饰等区域分别检查。每个差异尽量关联分析 ID 和坐标，避免局部问题被整体观感掩盖。
+整图复杂时，按标题、主面板、角色卡片、底部装饰等区域分别检查。优先使用原图局部、当前实现局部和差异局部组成的三联图；模型无法从整图稳定定位时，进一步缩小到单个区域或元素。每个差异尽量关联分析 ID 和原图坐标，避免局部问题被整体观感掩盖。
 
 差异分析提示词：
 
@@ -59,7 +69,15 @@ python scripts/compare_images.py --reference "screenshots/reference.png" --curre
 优先报告影响面积大、位置偏差明显的问题。无法确定原因时明确标记，不臆测。不要把抗锯齿或用户允许的细节调整自动判为缺陷。
 ```
 
-## 修正顺序
+## 三轮校正与优先级
+
+| 轮次 | 主要目标 | 本轮边界 |
+|---|---|---|
+| 第一轮：几何关系 | 画布、主区域、面板、卡片、遮挡和层级 | 不因精修阴影或字体而改动已确认结构 |
+| 第二轮：素材与文字 | 插画比例、透明边缘、裁剪、文字内容、字体和换行 | 不随意改动已确认的几何坐标 |
+| 第三轮：精细细节 | 颜色、边框、阴影、渐变和小装饰 | 每次只选少量相关问题 |
+
+每轮内部再按以下优先级排序：
 
 | 优先级 | 范围 | 典型问题 |
 |---|---|---|
@@ -68,7 +86,9 @@ python scripts/compare_images.py --reference "screenshots/reference.png" --curre
 | P2 | 文字排版 | 字体、字号、字重、行高、换行、字距、对齐 |
 | P3 | 精细装饰 | 阴影、渐变、边框颜色、小图标和手绘线条 |
 
-每轮只处理一组相关问题。修正后重新运行、截图和对比，并检查邻近区域及已通过区域。不要整页推倒重写。
+诊断与修复分开。先把问题写入 `issues.md`，固定允许修改的元素、文件和属性，再实施局部补丁。修正后重新运行、截图和对比，检查目标、相邻区域和 `freeze: true` 的已验收区域。不要整页推倒重写。
+
+出现退化时回到最近验收检查点，只重做当前小组修正。恢复或覆盖文件前列明对象和影响，取得用户确认。
 
 ## 验收清单
 
@@ -95,6 +115,10 @@ python scripts/compare_images.py --reference "screenshots/reference.png" --curre
 ### 运行质量
 
 页面能够启动，无缺失资源和关键控制台错误，交互范围符合登记要求。
+
+### 修改与回归
+
+本轮只修改任务卡允许的范围；目标、相邻和冻结区域均有复查结果。出现的退化已恢复或明确记录，没有未经说明的额外改动。
 
 ### 交付完整性
 
