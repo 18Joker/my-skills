@@ -5,13 +5,13 @@
 //
 // 渲染 ProjImported（清单刚导入、未改动的工作台工程）与 ProjOriginal（成片工程自己的 Main）
 // 同一帧的 PNG 到 .parity/，用 PIL 逐像素比对（每通道差 > tolerance 的像素占比）。
-// 前置：已 `node scripts/open.mjs <工程>` 链接成片，清单提供了 `original`，本机有 python3 + Pillow。
+// 前置：已 `node scripts/open.mjs <工程>` 链接成片，清单提供了 `original`，本机有 python/python3 + Pillow。
 // 打包一次、渲多帧（remotion still 每次都重新打包，8 帧要跑八次 bundle）。
 // 退出码：0 全部一致；1 有帧存在差异；2 无法得出结论（前置缺失 / 比对未执行）——绝不假绿。
 import { bundle } from "@remotion/bundler";
 import { renderStill, selectComposition } from "@remotion/renderer";
 import { spawnSync } from "node:child_process";
-import { existsSync, mkdirSync } from "node:fs";
+import { existsSync, mkdirSync, rmSync, cpSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -25,21 +25,30 @@ if (!existsSync(join(wb, "proj", "workbench.ts"))) {
   console.error("未链接带清单的成片工程：先 node scripts/open.mjs <工程目录>");
   process.exit(2);
 }
-// 比对依赖先检查，别渲完一堆帧才发现比不了
-{
-  const r = spawnSync("python3", ["-c", "import PIL"], { encoding: "utf8" });
-  if (r.status !== 0) {
-    console.error("parity 需要 python3 + Pillow 做像素比对：pip install pillow（或 python3 -m pip install pillow）");
-    process.exit(2);
-  }
+// 比对依赖先检查，别渲完一堆帧才发现比不了（Windows 上通常是 python 而非 python3）
+const pythonCommands = process.platform === "win32" ? ["python", "python3"] : ["python3", "python"];
+const python = pythonCommands.find((c) => spawnSync(c, ["-c", "import PIL"], { encoding: "utf8" }).status === 0);
+if (!python) {
+  console.error("parity 需要 python + Pillow 做像素比对：pip install pillow");
+  process.exit(2);
 }
 
 // Remotion 静态服务器拒绝符号链接：同导出流程，先解引用同步到 .render-public
 const out = join(wb, ".parity");
 mkdirSync(out, { recursive: true });
 const renderPublic = join(wb, ".render-public");
-const rs = spawnSync("rsync", ["-aL", "--delete", "--exclude=cardpreviews", "public/", `${renderPublic}/`], { cwd: wb, stdio: "inherit" });
-if (rs.status !== 0) process.exit(2);
+try {
+  rmSync(renderPublic, { recursive: true, force: true });
+  mkdirSync(renderPublic, { recursive: true });
+  cpSync(join(wb, "public"), renderPublic, {
+    recursive: true,
+    dereference: true,
+    filter: (src) => !/[\\/]cardpreviews$/.test(src),
+  });
+} catch (e) {
+  console.error("素材同步失败（无法解引用 public/）：", e);
+  process.exit(2);
+}
 
 console.log("bundling…");
 const serveUrl = await bundle({
@@ -78,7 +87,7 @@ print(bad, a.size[0] * a.size[1], max(max(p) for p in px))
 const results = []; // { f, verdict: "same" | "diff" | "inconclusive", detail }
 for (const f of FRAMES) {
   const [a, b] = await Promise.all([render("ProjImported", f), render("ProjOriginal", f)]);
-  const py = spawnSync("python3", ["-c", PY_DIFF, a, b, String(TOL)], { encoding: "utf8" });
+  const py = spawnSync(python, ["-c", PY_DIFF, a, b, String(TOL)], { encoding: "utf8" });
   if (py.status !== 0) {
     const detail = (py.stdout + py.stderr).trim().split("\n").pop() ?? "";
     results.push({ f, verdict: "inconclusive", detail });
