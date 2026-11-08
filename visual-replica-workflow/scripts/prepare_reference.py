@@ -5,11 +5,12 @@ from __future__ import annotations
 
 import argparse
 import json
+import math
 import re
 import sys
 from pathlib import Path
 
-from compare_images import encode_png, read_png
+from compare_images import check_pixel_budget, crop_rgba, encode_png, load_region_json, read_png, validate_output_path, validate_rgba
 
 MAX_SCALE = 4
 MAX_REGIONS = 64
@@ -69,6 +70,9 @@ def draw_number(buffer: bytearray, width: int, height: int, value: int, x: int, 
 
 
 def make_grid(width: int, height: int, rgba: bytes, step: int) -> bytes:
+    validate_rgba(width, height, rgba)
+    if isinstance(step, bool) or not isinstance(step, int) or step <= 0:
+        raise ValueError("网格间距必须是正整数")
     grid = bytearray(rgba)
     for x in range(0, width, step):
         for y in range(height):
@@ -82,20 +86,44 @@ def make_grid(width: int, height: int, rgba: bytes, step: int) -> bytes:
 
 
 def crop(width: int, rgba: bytes, region: dict[str, int]) -> bytes:
-    x, y, region_width, height = region["x"], region["y"], region["width"], region["height"]
-    output = bytearray(region_width * height * 4)
-    for row in range(height):
-        source_start = ((y + row) * width + x) * 4
-        source_end = source_start + region_width * 4
-        output[row * region_width * 4:(row + 1) * region_width * 4] = rgba[source_start:source_end]
-    return bytes(output)
+    return crop_rgba(width, rgba, region)
+
+
+def local_to_source(
+    region: dict[str, int], x: float, y: float, width: float, height: float, scale: int,
+) -> dict[str, float]:
+    """将放大裁剪图中的像素边界坐标逆变换为源图坐标，不取整：源 = offset + 局部 / scale。"""
+    if isinstance(scale, bool) or not isinstance(scale, int) or not 1 <= scale <= MAX_SCALE:
+        raise ValueError(f"scale 必须在 1 到 {MAX_SCALE} 之间")
+    if not isinstance(region, dict):
+        raise ValueError("源区域必须是对象")
+    for field in ("x", "y", "width", "height"):
+        value = region.get(field)
+        if isinstance(value, bool) or not isinstance(value, int) or value < 0:
+            raise ValueError("源区域坐标与尺寸必须是非负整数")
+    check_pixel_budget(region["width"], region["height"])
+    for value in (x, y, width, height):
+        if isinstance(value, bool) or not isinstance(value, (int, float)) or (isinstance(value, float) and not math.isfinite(value)) or value < 0:
+            raise ValueError("局部坐标与尺寸必须是有限非负数")
+    if x + width > region["width"] * scale or y + height > region["height"] * scale:
+        raise ValueError("局部坐标超出放大裁剪图边界")
+    return {
+        "x": region["x"] + x / scale,
+        "y": region["y"] + y / scale,
+        "width": width / scale,
+        "height": height / scale,
+    }
 
 
 def scale_nearest(width: int, height: int, rgba: bytes, scale: int) -> tuple[int, int, bytes]:
+    validate_rgba(width, height, rgba)
+    if isinstance(scale, bool) or not isinstance(scale, int) or not 1 <= scale <= MAX_SCALE:
+        raise ValueError(f"scale 必须在 1 到 {MAX_SCALE} 之间")
+    scaled_width, scaled_height = width * scale, height * scale
+    scaled_pixels = check_pixel_budget(scaled_width, scaled_height, MAX_TOTAL_OUTPUT_PIXELS)
     if scale == 1:
         return width, height, rgba
-    scaled_width, scaled_height = width * scale, height * scale
-    output = bytearray(scaled_width * scaled_height * 4)
+    output = bytearray(scaled_pixels * 4)
     for y in range(height):
         source_row = rgba[y * width * 4:(y + 1) * width * 4]
         scaled_row = bytearray(scaled_width * 4)
@@ -132,7 +160,7 @@ def load_regions(path: Path | None, width: int, height: int) -> list[dict[str, o
     if path is None:
         regions = default_regions(width, height)
     else:
-        data = json.loads(path.read_text(encoding="utf-8-sig"))
+        data = load_region_json(path)
         regions = data.get("regions") if isinstance(data, dict) else data
         if not isinstance(regions, list):
             raise ValueError("区域文件必须是数组或包含 regions 数组")
@@ -183,27 +211,27 @@ def main() -> int:
             raise ValueError(f"scale 必须在 1 到 {MAX_SCALE} 之间")
         width, height, rgba = read_png(input_path)
         regions = load_regions(regions_path, width, height)
+        total_pixels = width * height + sum(int(region["width"]) * int(region["height"]) * args.scale ** 2 for region in regions)
+        if total_pixels > MAX_TOTAL_OUTPUT_PIXELS:
+            raise ValueError("网格与区域输出总像素超过安全上限；请减少区域或降低 scale")
+        if output_dir.exists() and not output_dir.is_dir():
+            raise ValueError("输出目录路径已存在但不是目录")
         output_paths = {
             "grid.png": output_dir / "grid.png",
             "regions.json": output_dir / "regions.json",
         }
         for region in regions:
             output_paths[f"regions/{region['id']}.png"] = output_dir / "regions" / f"{region['id']}.png"
+        protected_inputs = {input_path}
+        if regions_path is not None:
+            protected_inputs.add(regions_path)
         for path in output_paths.values():
-            resolved = path.resolve()
-            if resolved == input_path or (regions_path is not None and resolved == regions_path):
-                raise ValueError("输出不得覆盖原图或自定义区域文件")
-            if path.exists() and not args.overwrite:
-                raise ValueError(f"输出已存在；未明确批准覆盖时停止：{path}")
+            validate_output_path(path, protected_inputs, args.overwrite)
         payloads: dict[str, bytes] = {"grid.png": encode_png(width, height, make_grid(width, height, rgba, args.grid_step))}
         manifest_regions = []
-        total_pixels = width * height
         for region in regions:
             cropped = crop(width, rgba, region)  # type: ignore[arg-type]
             scaled_width, scaled_height, scaled = scale_nearest(int(region["width"]), int(region["height"]), cropped, args.scale)
-            total_pixels += scaled_width * scaled_height
-            if total_pixels > MAX_TOTAL_OUTPUT_PIXELS:
-                raise ValueError("网格与区域输出总像素超过安全上限；请减少区域或降低 scale")
             relative_name = f"regions/{region['id']}.png"
             payloads[relative_name] = encode_png(scaled_width, scaled_height, scaled)
             manifest_regions.append({
@@ -212,14 +240,27 @@ def main() -> int:
                 "scaledWidth": scaled_width,
                 "scaledHeight": scaled_height,
                 "scale": args.scale,
+                "localCoordinateSpace": "scaled-region-pixels",
+                "localToSource": {
+                    "offsetX": region["x"],
+                    "offsetY": region["y"],
+                    "scale": args.scale,
+                    "x": "source.x = offsetX + local.x / scale",
+                    "y": "source.y = offsetY + local.y / scale",
+                    "width": "source.width = local.width / scale",
+                    "height": "source.height = local.height / scale",
+                },
             })
         manifest = {
-            "source": str(input_path),
+            "source": input_path.as_posix(),
             "sourceWidth": width,
             "sourceHeight": height,
             "gridStep": args.grid_step,
             "gridFile": "grid.png",
             "coordinateSpace": "source-pixels",
+            "gridCoordinateSpace": "source-pixels",
+            "regionImageCoordinateSpace": "scaled-region-pixels",
+            "coordinateConvention": "pixel-edges-half-open",
             "regions": manifest_regions,
         }
         payloads["regions.json"] = (json.dumps(manifest, ensure_ascii=False, indent=2) + "\n").encode("utf-8")
@@ -227,18 +268,19 @@ def main() -> int:
         for name, payload in payloads.items():
             path = output_paths[name]
             path.parent.mkdir(parents=True, exist_ok=True)
+            validate_output_path(path, protected_inputs, args.overwrite)
             with path.open("wb" if args.overwrite else "xb") as stream:
                 stream.write(payload)
         print(json.dumps({
             "status": "prepared",
-            "source": str(input_path),
+            "source": input_path.as_posix(),
             "width": width,
             "height": height,
             "regionCount": len(regions),
-            "outputs": [str(path.resolve()) for path in output_paths.values()],
+            "outputs": [path.resolve().as_posix() for path in output_paths.values()],
         }, ensure_ascii=False, indent=2))
         return 0
-    except (OSError, UnicodeError, json.JSONDecodeError, ValueError) as exc:
+    except (OSError, UnicodeError, ValueError) as exc:
         print(json.dumps({"status": "unavailable", "error": str(exc)}, ensure_ascii=False), file=sys.stderr)
         return 2
 

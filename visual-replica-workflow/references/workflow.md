@@ -1,98 +1,153 @@
-# 标准工作流与项目约定
+# 项目协议、阶段检查与回归
 
-## 单一视觉目标
+## 分析与实施的边界
 
-参考图决定内容、布局、配色、比例和层级。需求文档决定交互、技术栈和交付范围；两者冲突时先请用户裁决，不自行 redesign。
-
-推荐三种实现方式中，默认选择混合实现：文字与布局使用 HTML/CSS，简单矢量使用 SVG，复杂插画使用独立图片。只有用户明确要求静态图片展示时才使用整图方案，并且不得称为代码复刻。
-
-确定性工作优先交给工具：脚本负责网格、裁剪、透明通道和差异材料，浏览器负责真实渲染，模型负责理解和生成，用户负责视觉取舍。不要把模型的估算、解释或自我评价当成测量与验收事实。
-
-## 阶段门
-
-| 步骤 | 输入 | 输出 | 进入下一步的条件 |
-|---|---|---|---|
-| 输入登记 | 原图、A/B/C 任务类型、目标尺寸、交互要求、项目范围 | 任务记录 | 目标与授权明确 |
-| 分析预处理 | 原图、批准的输出目录 | 网格图、命名分区裁剪、区域清单 | 原图未改动且裁剪坐标可追溯 |
-| 视觉分析 | 原图、网格和分区图 | 分析 JSON、布局树、独立文字清单、风险项 | 关键区域与文字已人工核验 |
-| 素材处理 | 元素清单、原图、已有素材 | 素材目录、透明检查材料、素材清单 | 主要素材有实现方式，集成素材已批准 |
-| 骨架实现 | 已核验规格 | 可运行结构版本 | 主分区位置与尺寸通过检查 |
-| 素材集成 | 骨架、已批准素材 | 页面初版 | 文字、样式和素材已集成 |
-| 视觉校正 | 原图、当前页面 | 截图、整图与分区对比、任务卡、回归记录 | 明显差异已处理或明确保留 |
-| 最终交付 | 修正版页面和全部证据 | 源码、素材、截图、验收说明 | 验收状态真实且剩余差异已记录 |
-
-分析阶段不写代码；编码阶段不自行设计；验收阶段不凭记忆判断。
-
-## 推荐目录
-
-按现有工程约定调整，不为了套目录而重建项目。
+首次详细分析必须以 `analysis-spec.md` 的八段格式发在聊天中并等待用户，不能用工程文件代替说明。收到批准前，不需要也不得为了走流程创建整个项目。收到批准后在已授权目录固化下面的机器材料，沿用现有工程，不强迫重建目录。
 
 ```text
-replica-project/
-├── reference/
-│   ├── source.png
-│   ├── grid.png
-│   ├── regions.json
-│   ├── regions/
-│   ├── analysis.json
-│   ├── text-manifest.json
-│   └── layout.md
-├── public/
-│   └── assets/
-│       ├── characters/
-│       ├── icons/
-│       ├── decorations/
-│       └── backgrounds/
-├── src/
-│   ├── components/
-│   ├── styles/
-│   └── pages/
-├── screenshots/
-│   ├── reference.png
-│   ├── current.png
-│   └── comparison/
-└── reviews/
-    ├── asset-manifest.json
-    ├── differences.md
-    ├── issues.md
-    ├── acceptance.md
-    └── checkpoints/
+reference/source.png                  同尺寸比较基准，原始文件另保留
+reference/preprocessed/regions.json    网格、裁图与坐标逆变换清单
+reference/analysis.json                已批准方案和候选坐标
+reference/text-manifest.json           独立文字候选与核验
+reviews/asset-manifest.json            已存在素材与审批记录
+reviews/issues.json                   机器局部任务卡；聊天中另说明
+reviews/checkpoints/round-01.json      明列文件摘要及截图基线
+public/assets/                        实际素材
+screenshots/round-01.png               每轮独立截图
+screenshots/round-01.png.capture.json   严格截图配对报告
+screenshots/round-01-comparison/       叠加与分区材料
 ```
 
-如果原图不是 PNG，保留原格式；只在生成对比材料时使用不修改原图的 PNG 副本。
+路径全部以批准项目根目录为基准，清单引用用正斜杠、根相对路径，不用 `..`。脚本拒绝越界路径及逃逸符号链接，只检查明列文件，不扫描其他个人目录。若工程素材位于其他目录，先由用户决定纳入哪个项目根范围或提供独立副本。
 
-## 角色分工
+## 统一分析规格
 
-| 角色 | 负责 | 不负责 |
-|---|---|---|
-| 视觉分析 | 拆解布局、识别元素、转录文字、报告差异 | 不直接重写整个项目 |
-| 图片处理 | 提取素材、去背景、清理边缘、补充经批准的素材 | 不生成完整前端页面 |
-| 前端实现 | 按规格编码、集成素材、修复明确问题 | 不擅自修改视觉目标 |
-| 浏览器与对比工具 | 固定视口截图、生成对比证据 | 不代替人工判断视觉质量 |
+下面数字和文字仅为格式示例，不是对任何用户图的测量。用实际图、实际摘要和实际用户回复替换，不能复制示例声明为已验证。
 
-一个助手可以承担多个角色，但阶段产物和验收顺序不能省略。
+```json
+{
+  "schemaVersion": "1",
+  "revision": 1,
+  "sourceFile": "reference/source.png",
+  "sourceSha256": "替换为工具计算的64位小写摘要",
+  "coordinateSpace": "source-pixels",
+  "canvas": {
+    "sourceWidth": 1536,
+    "sourceHeight": 864,
+    "viewportWidth": 1536,
+    "viewportHeight": 864,
+    "deviceScaleFactor": 1
+  },
+  "elements": [
+    {
+      "id": "title-main",
+      "type": "text",
+      "parentId": null,
+      "text": "示例标题",
+      "x": 90,
+      "y": 18,
+      "width": 820,
+      "height": 120,
+      "rotation": 0,
+      "implementation": "html-css",
+      "style": {"fontSize": 96, "fontWeight": 900, "lineHeight": 1.1},
+      "source": "estimated",
+      "confidence": "medium",
+      "verified": false,
+      "status": "unimplemented",
+      "freeze": false,
+      "evidence": "标题可见，精确边界和字体待核验"
+    }
+  ],
+  "review": {"status": "pending"}
+}
+```
 
-## 固定上下文与修改边界
+元素使用 `width/height`，不用混杂的 `w/h`；`parentId` 只表示层级，所有坐标仍为源图绝对像素。可选 `relative` 使用 `x/y/width/height`，由源图宽高计算，误差容差 0.0001 仅用于数值一致性。明确越界的装饰需要 `allowOverflow: true` 和原因，不能默默裁错。
 
-每轮校正只携带当前需要的 `analysis.json`、`text-manifest.json`、`asset-manifest.json`、`current.png`、`diff.png`、`issues.md` 和相关代码文件。缺失材料明确标注，不让模型从聊天记忆补造。
+`verified: true` 必须附 `verificationEvidence`（实际测量、截图或用户核对记录）；`freeze: true` 必须同时 `status: approved` 并有证据。策略批准不等于元素已经视觉验收；估算可用于实施，但保持待核验，后续截图校正。
 
-`issues.md` 至少记录：目标元素、可见问题、允许修改的文件和属性、禁止触碰的素材与冻结区域、修改后的回归范围。诊断和修复分为两个动作，不把“继续整体优化”作为任务指令。
+## 用户审核回执
 
-## 状态、检查点与回归
+对当前完整规划计算摘要后记录真实审批，而不是让模型自填“用户已同意”。分析检查输出 `analysis_digest` 和 `source_sha256`；先把实际源摘要写入规格再计算最终规划摘要。使用 `validate_project.plan_digest(analysis)` 或再次执行分析检查获取，禁止手写或猜测摘要。
 
-元素状态使用 `unimplemented`、`implemented`、`pending-review`、`approved`。只有完成实际验收的元素才标记 `approved`；需要防止误改时同时设置 `freeze: true`。冻结不是永久禁止修改，而是要求单独说明必要性并扩大回归范围。
+```json
+{
+  "status": "approved",
+  "revision": 1,
+  "analysisDigest": "工具计算的当前规划摘要",
+  "confirmedBy": "user",
+  "evidence": "实际用户原话或可追溯消息引用，不能使用这段示例",
+  "approvedElementIds": ["title-main", "panel-main", "character-cat"],
+  "allowGeneratedAssetIds": [],
+  "allowRasterizedTextIds": []
+}
+```
 
-每轮视觉修正保留当前截图、差异清单和任务卡。修改后先检查目标区域，再检查相邻区域和冻结的主要结构。通过阶段验收后，在用户批准的项目范围内创建检查点；已有 Git 工程可沿用其提交约定，不擅自初始化仓库或提交。
+把该对象写入 `analysis.review`。后三个数组全部使用**元素 ID**，即使字段名含 Asset 也不是素材 ID。没有获准生成则生成数组为空；特殊字图片化单列许可；不得把批准局部解释为批准全部。数组中 ID 必须实际存在，待定方法或 unknown 元素不可进入实施范围。
 
-出现“修好一处、破坏另一处”时，回到最近验收检查点，只重做当前小组修正，不继续叠加整页改动。恢复文件前仍需列出对象和影响并取得确认。
+规划摘要包含原图、尺寸、坐标、样式、方法、版本等全部规划字段，排除 `review` 以及元素 `status/freeze/verified/verificationEvidence`。用户纠正方案或更换规划时更新 `revision` 和摘要，重新获得受影响范围确认。日常只修正实现 CSS 使之符合已批准目标，不必擅自改目标规格；确实需要纠正目标规格时重新审核，不能用旧回执冒充新授权。
 
-## 关键经验
+脚本只能检查回执内容、版本和摘要一致，不能证明真实用户发过消息。宿主必须核对聊天原话；`checks_passed` 不等于用户授权或视觉通过。
 
-- 原图中的可提取角色优先于外观相近的新生角色。
-- 独立角色逐个提取或生成，避免边界混杂和比例不统一。
-- 复杂插画不强行用 CSS 临摹，简单边框和卡片不滥用截图。
-- 装饰性手机内屏可保留图片；需要交互的内屏必须拆成真实组件。
-- 坐标是待校正规格，不是测量真相；置信度必须保留。
-- 字体回退会改变宽度、换行和整体高度，必须在截图中核验。
-- 图片透明留白会改变视觉位置，比较内容框与元素框是否一致。
-- 截图对比是必经验证步骤；无法执行时只能降级交付，不能省略结论标注。
+## 阶段检查命令
+
+所有路径替换为实际绝对路径；支持的 stage 为 `analysis / implementation / capture / regression`。脚本只读并向终端输出 JSON，不创建报告文件。
+
+```bash
+python "<技能目录>/scripts/validate_project.py" --project-root "<项目目录>" --analysis "reference/analysis.json" --stage analysis
+python "<技能目录>/scripts/validate_project.py" --project-root "<项目目录>" --analysis "reference/analysis.json" --text-manifest "reference/text-manifest.json" --asset-manifest "reviews/asset-manifest.json" --stage implementation
+python "<技能目录>/scripts/validate_project.py" --project-root "<项目目录>" --analysis "reference/analysis.json" --text-manifest "reference/text-manifest.json" --asset-manifest "reviews/asset-manifest.json" --current "screenshots/round-01.png" --capture-report "screenshots/round-01.png.capture.json" --stage capture
+```
+
+- `analysis`：核对候选规格、坐标、层级、参考图和已提供的文件；状态 `awaiting_user_review`，**绝不授予实施许可**。
+- `implementation`：核对本次回执、已选元素、文字、现存素材、生成许可和透明需求。缺文件或未批准的素材不作为正式资源；骨架可保留占位，但不得因此宣称完整集成检查通过。
+- `capture`：再核对当前 PNG、报告摘要、物理尺寸、严格就绪、错误、版本与 DOM ID；输出源像素几何偏差，仅定位，不自动视觉评分。
+- `regression`：追加问题清单、基线和文件检查点，检查越界文件变化及冻结区域。
+- `blocked` 退出码 1：输入、审批或证据不一致；停止受影响动作。
+- `needs_review` 退出码 1：冻结区域发生变化；交用户复查，不代表视觉自动失败。
+- `awaiting_user_review / checks_passed` 退出码 0：对应机器检查结束，`visual_approved` 始终为 `false`。
+
+清单可以先只包含已存在且需要本轮检查的素材；未制作素材留在分析的策略和聊天待办中，不用假的文件路径通过检查。完整交付时必须补齐全部已批准元素及对应清单；局部检查不冒充全页验收。
+
+## 局部任务卡与文件检查点
+
+以聊天问题说明为主，自动回归时另保存下面两个 JSON。只填实际存在的文件及工具计算的摘要，不自动初始化仓库、提交或回退。
+
+```json
+{
+  "revision": 1,
+  "analysisDigest": "当前规划摘要",
+  "allowedElementIds": ["title-main"],
+  "allowedFiles": ["src/styles/page.css"],
+  "allowedProperties": ["top", "font-size"],
+  "regressionElementIds": ["panel-main"],
+  "evidence": "本轮截图中标题偏低，列出实际截图或区域证据"
+}
+```
+
+```json
+{
+  "revision": 1,
+  "analysisDigest": "当前规划摘要",
+  "baseline": "screenshots/round-01.png",
+  "baselineSha256": "实际基线摘要",
+  "files": {
+    "src/styles/page.css": "修改前文件摘要",
+    "src/pages/index.html": "修改前文件摘要",
+    "public/assets/cat.png": "已批准素材的实际摘要"
+  }
+}
+```
+
+默认最多三个目标问题，扩大时记录 `maxIssues` 和 `expansionEvidence`；冻结目标需要 `unfreezeEvidence`，但仍须复查实际冻结区域，不能用字符串自动豁免。把全部可能受影响的源码、共享样式、已批准素材和规格明列入 checkpoint；缺失文件或非允许文件 hash 变化会阻止继续。
+
+```bash
+python "<技能目录>/scripts/validate_project.py" --project-root "<项目目录>" --analysis "reference/analysis.json" --text-manifest "reference/text-manifest.json" --asset-manifest "reviews/asset-manifest.json" --current "screenshots/round-02.png" --capture-report "screenshots/round-02.png.capture.json" --baseline "screenshots/round-01.png" --issues "reviews/issues.json" --checkpoint "reviews/checkpoints/round-01.json" --stage regression
+```
+
+冻结区域用明确源坐标裁剪并检查变化；旋转时使用实际 AABB 或用户批准的回归区域，不把旋转前框误称精确覆盖。记录目标、相邻和冻结区域，再决定保留或回退。文件 hash 检查只覆盖明列文件，不会发现未追踪新增文件；允许文件内部的 CSS 属性／选择器仍须宿主看完整 diff。机器指标与用户判断缺一不可。
+
+## 分工与最终验收
+
+视觉角色只分析与诊断；素材角色只处理获准素材；代码角色只实现目标或局部补丁；浏览器角色提供实际证据。一个助手可轮流担当，不省略阶段边界。分别记录结构验收和视觉验收，任何局部批准、机器 checks_passed 或有 PNG 文件都不能等同完整视觉通过。
