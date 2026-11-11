@@ -8,7 +8,7 @@
 
 # video-shotcraft
 
-[English](README.md) | **中文** | [日本語](README_JA.md) | [Русский](README_RU.md)
+[English](README.md) | **中文** | [繁體中文](README_TW.md) | [日本語](README_JA.md) | [Русский](README_RU.md)
 
 [![Gallery](https://img.shields.io/badge/Gallery-live%20previews-d3923c)](https://vincentwei1021.github.io/video-shotcraft/)
 [![Showcase](https://img.shields.io/badge/Showcase-community%20videos-7c3aed)](https://vincentwei1021.github.io/video-shotcraft/showcase.html)
@@ -62,17 +62,6 @@
 </td>
 <td>
   <p>感谢 APIMart 赞助了本项目！APIMart 是专注 AI 图片/视频生成的低价 API 平台，GPT-Image-2 低至 $0.006/张，1 美元可出图 160+ 张。图片、视频一套异步 API 通吃，提交任务拿 ID、回调取结果，跑批万张不超时、换模型不改代码。按量付费、无月费，通过此<a href="https://go.apimart.ai/tw-video-shotcraft">注册链接</a>注册即可开用。</p>
-</td>
-</tr>
-<tr>
-<td align="center" valign="middle" width="25%">
-  <a href="https://www.packyapi.ai/register?aff=l9IZ"><img src="./assets/readme/sponsors/packycode.png" width="200" alt="PackyCode 标志"></a><br>
-  <a href="https://www.packyapi.ai/register?aff=l9IZ"><b>PackyCode</b></a>
-</td>
-<td>
-  <p>PackyCode 是一家稳定、高效的 API 中转服务商，通过统一域名、统一密钥接入主流大模型，支持智能容灾切换，并提供专属 Codex / Claude Code 高速通道。</p>
-  <p>新用户可获 $1 免费体验额度，首充享折扣，多分组折扣低至 2 折起。支持人民币 1:1 充值，无汇率加价及额外充值手续费。</p>
-  <p><a href="https://www.packyapi.ai/register?aff=l9IZ">注册并开始使用 PackyCode →</a></p>
 </td>
 </tr>
 <tr>

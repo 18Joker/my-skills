@@ -39,6 +39,7 @@ cd workbench && npm install && npm run dev      # http://localhost:5198
   主题预设名写成「中文 · English」按语言取半段，俄文按中文半段查词典。加界面文案三种语言都要写；
   改原生卡或模板清单的中文标签 / 一句话要同步两份词典；新增或改写 demo 时同步补 `i18n/ru/*.json`
 - **导出成片**：顶栏「导出成片」→ dev server 内起 Remotion CLI 渲当前工程为 MP4 → `exports/`
+  错误提示随界面语言切换（English / 中文 / Русский），同时保留文件系统和渲染器的原始诊断信息。
 - **Remotion Studio**：`npm run studio`（每张卡 Zod schema 自动生成；`ProjImported` / `ProjOriginal` 对照）
 - **无损校验**：`npm run parity`——退出码 0 一致 / 1 有差异 / 2 无法比对（缺 python3+Pillow），不假绿
 
@@ -52,7 +53,11 @@ node scripts/open.mjs <dir> --no-open     # 不弹浏览器
 
 做的事：`ln -sfn <工程>/src proj`、把 `<工程>/public/*` 逐项链接进 `public/`、跑 `gen-index`、
 起 vite（5198）、打开 `http://localhost:5198/?import=project`（存档不是这一版成片时按清单自动导入，
-旧存档进撤销栈；是这一版则保留你的改动）。全部是机器本地符号链接，不进库。
+旧存档进撤销栈；是这一版则保留你的改动）。目录在 Windows 上用 junction，其余平台用符号链接。
+Windows 文件符号链接报 `EPERM`（未开开发者模式）时，根目录文件改为复制，不再跳过图片或音频。
+副本归属记在 `.public-copies.json`；切换工程只清理身份和内容都未变的托管副本，不覆盖真实用户文件，
+同名冲突会报错。复制不会实时跟随源文件变化：更新源素材后重新运行 `open.mjs <工程目录>`。
+链接、副本和记录都是机器本地产物，不进库。
 
 给了工程目录就会重启 dev server（`@proj` 别名在 vite 启动时定死），但只重启本脚本自己起的那个
 （`.dev.pid` + 进程命令行核实，pid 被复用不会误杀）；端口被手动 `npm run dev` 占着时直接报错，
@@ -97,6 +102,7 @@ src/
 scripts/
   gen-index.mjs           静态索引 + 素材清单 + 仓库级链接（prepare / predev / prebuild / prestudio 自动跑）
   open.mjs                交付后一键打开（链接工程 → gen → dev server → 浏览器）
+  public-assets.mjs       public/ 接入与 Windows 文件复制兜底、托管副本清理
   parity.mjs              ProjImported vs ProjOriginal 逐帧比对
 proj-stub/                未链接成片工程时的降级实现
 demosrc -> ../demos       demo 源码（相对符号链接，进库）

@@ -7,17 +7,19 @@
 // 成片工程目录 = 含 package.json / remotion.config.ts 的那一层，源码在 <目录>/src（或 <目录>/remotion/src）。
 // 工程要提供 src/workbench.ts 清单（结构见 references/workbench.md）才能拆解导入；没有清单也能打开，
 // 只是素材 tab 没有「导入成片」按钮。
-// 链接全是机器本地符号链接（workbench/proj、workbench/public/*），不进库。
+// 链接与 Windows 文件复制兜底都是机器本地产物，不进库。
 //
 // dev server 管理：本脚本起的 server 记 pid 到 .dev.pid。@proj 别名在 vite 配置加载时定死，
 // 所以「给了工程目录 = 重新链接」必须重启 server——只重启身份核实过的自家进程；端口被别的
 // server（如手动 npm run dev）占着时直接报错，不会假装"刷新即可"。
 import { spawn, spawnSync } from "node:child_process";
 import {
-  existsSync, lstatSync, mkdirSync, openSync, readFileSync, readdirSync, readlinkSync, rmdirSync, symlinkSync, unlinkSync, writeFileSync,
+  existsSync, lstatSync, openSync, readFileSync, readdirSync, readlinkSync, unlinkSync, writeFileSync,
 } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { linkDir } from "./link.mjs";
+import { syncProjectPublic } from "./public-assets.mjs";
 
 const wb = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const args = process.argv.slice(2);
@@ -50,27 +52,10 @@ if (!relink) {
   const publicSrc = join(projRoot, "public");
 
   // —— 2. 链接 src → proj，public/* → public/* ——
+  if (existsSync(projLink) && !isLink(projLink)) die("proj 是真实文件/目录，保留不覆盖；请先移走它再链接工程。", 2);
+  const n = syncProjectPublic(publicSrc, join(wb, "public"), join(wb, ".public-copies.json"), log);
   rmLink(projLink);
-  symlinkSync(srcDir, projLink);
-  const pub = join(wb, "public");
-  mkdirSync(pub, { recursive: true });
-  // 清掉上一部片留下的链接（只删符号链接和我们建的 textures/ 兜底目录，不碰真实文件）
-  for (const e of readdirSync(pub)) {
-    const p = join(pub, e);
-    if (isLink(p)) unlinkSync(p);
-    else if (e === "textures" && !isLink(p)) {
-      const inner = readdirSync(p);
-      if (inner.every((f) => isLink(join(p, f)))) { for (const f of inner) unlinkSync(join(p, f)); rmdirSync(p); }
-    }
-  }
-  let n = 0;
-  if (existsSync(publicSrc)) {
-    for (const e of readdirSync(publicSrc)) {
-      if (e.startsWith(".")) continue;
-      symlinkSync(join(publicSrc, e), join(pub, e));
-      n++;
-    }
-  }
+  linkDir(srcDir, projLink);
   log(`已链接 ${srcDir} → proj，public/ ${n} 项`);
   const manifest = ["workbench.ts", "workbench.tsx"].some((f) => existsSync(join(srcDir, f)));
   if (!manifest) log("⚠ 工程没有 src/workbench.ts 清单：能打开工作台，但无法拆解导入这部片（写法见 references/workbench.md）");
@@ -79,7 +64,10 @@ if (!relink) {
 // —— 3. 依赖与索引 ——
 if (!existsSync(join(wb, "node_modules"))) {
   log("首次使用，安装依赖…");
-  const r = spawnSync("npm", ["install", "--ignore-scripts"], { cwd: wb, stdio: "inherit" });
+  // Windows 上 npm 是 npm.cmd，要经 shell 启动
+  const r = process.platform === "win32"
+    ? spawnSync("npm install --ignore-scripts", { cwd: wb, stdio: "inherit", shell: true })
+    : spawnSync("npm", ["install", "--ignore-scripts"], { cwd: wb, stdio: "inherit" });
   if (r.status !== 0) process.exit(r.status ?? 1);
 }
 {
@@ -96,8 +84,11 @@ const readPid = () => { try { const n = Number(readFileSync(pidFile, "utf8").tri
 const pidAlive = (pid) => { try { process.kill(pid, 0); return true; } catch { return false; } };
 /** 进程身份核实：命令行必须是本工作台的 vite 且带同一端口——pid 会被系统复用，光"活着"不算 */
 const isOurVite = (pid) => {
-  if (process.platform === "win32") return false; // 无 ps；宁可不杀
-  const r = spawnSync("ps", ["-o", "command=", "-p", String(pid)], { encoding: "utf8" });
+  // Windows 无 ps：用 PowerShell 查进程命令行
+  const r = process.platform === "win32"
+    ? spawnSync("powershell.exe", ["-NoProfile", "-NonInteractive", "-Command",
+      `(Get-CimInstance Win32_Process -Filter "ProcessId=${pid}").CommandLine`], { encoding: "utf8" })
+    : spawnSync("ps", ["-o", "command=", "-p", String(pid)], { encoding: "utf8" });
   if (r.status !== 0) return false;
   const cmd = r.stdout.trim();
   return cmd.includes(viteBin) && cmd.includes(`--port ${PORT}`);

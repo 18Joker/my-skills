@@ -8,7 +8,7 @@
 
 # video-shotcraft
 
-[English](README.md) | [中文](README_CN.md) | [日本語](README_JA.md) | **Русский**
+[English](README.md) | [中文](README_CN.md) | [繁體中文](README_TW.md) | [日本語](README_JA.md) | **Русский**
 
 [![Галерея](https://img.shields.io/badge/Gallery-live%20previews-d3923c)](https://vincentwei1021.github.io/video-shotcraft/)
 [![Витрина](https://img.shields.io/badge/Showcase-community%20videos-7c3aed)](https://vincentwei1021.github.io/video-shotcraft/showcase.html)
@@ -66,17 +66,6 @@
 </td>
 <td>
   <p>Спасибо APIMart за поддержку проекта! APIMart — доступная API-платформа для генерации изображений и видео с ИИ: GPT-Image-2 от $0.006 за изображение, 160+ изображений за доллар. Один асинхронный API для изображений и видео: отправьте задачу, получите ID и заберите результат опросом или через обратный вызов. Генерируйте десятки тысяч изображений пакетами без тайм-аутов, меняйте модели без изменения кода. Оплата по использованию, без абонентской платы — <a href="https://go.apimart.ai/tw-video-shotcraft">зарегистрируйтесь здесь</a>, чтобы начать.</p>
-</td>
-</tr>
-<tr>
-<td align="center" valign="middle" width="25%">
-  <a href="https://www.packyapi.ai/register?aff=l9IZ"><img src="./assets/readme/sponsors/packycode.png" width="200" alt="Логотип PackyCode"></a><br>
-  <a href="https://www.packyapi.ai/register?aff=l9IZ"><b>PackyCode</b></a>
-</td>
-<td>
-  <p>Получите доступ к ведущим ИИ-моделям через PackyCode с единой точкой доступа API и одним API-ключом. Быстрый и надёжный доступ с автоматическим переключением при сбоях и выделенными высокоскоростными маршрутами для Codex и Claude Code.</p>
-  <p>Начните с $1 бесплатных средств, скидки на первое пополнение и экономии до 80% на доступных по акции маршрутах. Платите в RMB без наценок за конвертацию валюты и дополнительных комиссий за пополнение.</p>
-  <p><a href="https://www.packyapi.ai/register?aff=l9IZ">Начать работу с PackyCode →</a></p>
 </td>
 </tr>
 <tr>
