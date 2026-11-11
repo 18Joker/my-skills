@@ -9,14 +9,16 @@ import math
 import sys
 from pathlib import Path
 
-from compare_images import encode_png, read_png
+from compare_images import check_pixel_budget, composite, encode_png, read_png, validate_output_path, validate_rgba
 
 MAX_PREVIEW_EDGE = 1024
 MAX_PREVIEW_PIXELS = 4_194_304
 
 
 def resize_nearest(width: int, height: int, rgba: bytes, target_width: int, target_height: int) -> bytes:
-    output = bytearray(target_width * target_height * 4)
+    validate_rgba(width, height, rgba)
+    target_pixels = check_pixel_budget(target_width, target_height, MAX_PREVIEW_PIXELS)
+    output = bytearray(target_pixels * 4)
     for y in range(target_height):
         source_y = min(height - 1, y * height // target_height)
         for x in range(target_width):
@@ -27,28 +29,23 @@ def resize_nearest(width: int, height: int, rgba: bytes, target_width: int, targ
     return bytes(output)
 
 
-def composite(width: int, height: int, rgba: bytes, background: tuple[int, int, int]) -> bytes:
-    output = bytearray(width * height * 4)
-    for index in range(0, len(rgba), 4):
-        alpha = rgba[index + 3]
-        for channel in range(3):
-            output[index + channel] = (rgba[index + channel] * alpha + background[channel] * (255 - alpha)) // 255
-        output[index + 3] = 255
-    return bytes(output)
-
-
 def make_preview(width: int, height: int, rgba: bytes) -> tuple[int, int, bytes]:
+    validate_rgba(width, height, rgba)
+    if MAX_PREVIEW_EDGE < 1:
+        raise ValueError("预览边长上限必须为正数")
     scale = min(1.0, MAX_PREVIEW_EDGE / width, MAX_PREVIEW_EDGE / height)
     preview_width = max(1, math.floor(width * scale))
     preview_height = max(1, math.floor(height * scale))
     gap = 12
+    check_pixel_budget(2 + gap * 3, 1 + gap * 2, MAX_PREVIEW_PIXELS)
     while (preview_width * 2 + gap * 3) * (preview_height + gap * 2) > MAX_PREVIEW_PIXELS:
         preview_width = max(1, preview_width * 9 // 10)
         preview_height = max(1, preview_height * 9 // 10)
-    resized = rgba if (preview_width, preview_height) == (width, height) else resize_nearest(width, height, rgba, preview_width, preview_height)
     output_width = preview_width * 2 + gap * 3
     output_height = preview_height + gap * 2
-    output = bytearray(output_width * output_height * 4)
+    output_pixels = check_pixel_budget(output_width, output_height, MAX_PREVIEW_PIXELS)
+    resized = rgba if (preview_width, preview_height) == (width, height) else resize_nearest(width, height, rgba, preview_width, preview_height)
+    output = bytearray(output_pixels * 4)
     for y in range(output_height):
         for x in range(output_width):
             color = (245, 245, 245) if x < preview_width + gap * 2 else (32, 32, 32)
@@ -65,6 +62,7 @@ def make_preview(width: int, height: int, rgba: bytes) -> tuple[int, int, bytes]
 
 
 def inspect(width: int, height: int, rgba: bytes) -> dict[str, object]:
+    validate_rgba(width, height, rgba)
     transparent = 0
     translucent = 0
     opaque = 0
@@ -119,17 +117,17 @@ def main() -> int:
     try:
         asset_path = args.asset.expanduser().resolve()
         output_dir = args.output_dir.expanduser()
+        if output_dir.exists() and not output_dir.is_dir():
+            raise ValueError("输出目录路径已存在但不是目录")
         output_paths = {
             "inspection.json": output_dir / "inspection.json",
             "preview-light-dark.png": output_dir / "preview-light-dark.png",
         }
+        protected_inputs = {asset_path}
         for path in output_paths.values():
-            if path.resolve() == asset_path:
-                raise ValueError("输出不得覆盖待检查素材")
-            if path.exists() and not args.overwrite:
-                raise ValueError(f"输出已存在；未明确批准覆盖时停止：{path}")
+            validate_output_path(path, protected_inputs, args.overwrite)
         width, height, rgba = read_png(asset_path)
-        report = {"asset": str(asset_path), **inspect(width, height, rgba)}
+        report = {"asset": asset_path.as_posix(), **inspect(width, height, rgba)}
         preview_width, preview_height, preview = make_preview(width, height, rgba)
         report["preview"] = {"file": "preview-light-dark.png", "width": preview_width, "height": preview_height}
         payloads = {
@@ -138,17 +136,18 @@ def main() -> int:
         }
         output_dir.mkdir(parents=True, exist_ok=True)
         for name, payload in payloads.items():
+            validate_output_path(output_paths[name], protected_inputs, args.overwrite)
             with output_paths[name].open("wb" if args.overwrite else "xb") as stream:
                 stream.write(payload)
         print(json.dumps({
             "status": "inspected",
-            "outputs": [str(path.resolve()) for path in output_paths.values()],
+            "outputs": [path.resolve().as_posix() for path in output_paths.values()],
             "hasRealTransparency": report["hasRealTransparency"],
             "contentBounds": report["contentBounds"],
             "visualReviewRequired": True,
         }, ensure_ascii=False, indent=2))
         return 0
-    except (OSError, ValueError) as exc:
+    except (OSError, UnicodeError, ValueError) as exc:
         print(json.dumps({"status": "unavailable", "error": str(exc)}, ensure_ascii=False), file=sys.stderr)
         return 2
 

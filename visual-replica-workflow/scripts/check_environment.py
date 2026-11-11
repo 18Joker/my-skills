@@ -14,6 +14,8 @@ import urllib.request
 from pathlib import Path
 from typing import Any
 
+import capture_page
+
 VERSION_RE = re.compile(r"(?<![0-9])(0|[1-9][0-9]{0,5})(?:\.(0|[1-9][0-9]{0,5}))?(?:\.(0|[1-9][0-9]{0,5}))?", re.ASCII)
 VALID_TYPES = {"cli", "cli_probe", "env", "file", "json_field", "mcp", "mcp_probe", "auth_probe", "python", "url"}
 PROBE_REASON_CODES = {"ok", "auth_expired_or_invalid", "permission_denied", "quota_or_rate_limit", "service_error", "network_or_timeout", "version_incompatible", "configuration_invalid", "mcp_not_registered", "probe_failed"}
@@ -275,7 +277,7 @@ def check_item(dependency_id: str, item: dict[str, Any], *, allow_network: bool,
 
     if check_type == "mcp":
         server = str(item.get("server", ""))
-        config_path = Path.home() / ".workbuddy" / "mcp.json"
+        config_path = Path.home() / ".workbuddy-ai" / "mcp.json"
         if not config_path.is_file():
             result.update(status="missing", reason_code="mcp_not_registered", detail="WorkBuddy MCP 配置文件不存在")
             return result
@@ -301,6 +303,14 @@ def check_item(dependency_id: str, item: dict[str, Any], *, allow_network: bool,
     if check_type == "cli":
         command = str(item.get("command", ""))
         if not safe_cli_name(command):
+            return result
+        # 仅兼容旧清单的 chromium-browser/chrome 检查，不改变通用 CLI 校验。
+        if dependency_id == "chromium-browser" and command == "chrome":
+            executable = capture_page.find_browser()
+            result.update(status="ready" if executable else "missing", reason_code="ok" if executable else "cli_missing",
+                          detail=(f"发现本地 Chromium 浏览器：{executable}；仅发现可执行文件，未启动，不能证明可运行或页面就绪"
+                                  if executable else "未发现本地可执行 Chrome、Chromium 或 Edge"),
+                          executable=str(executable) if executable else None, discovery_only=True, runtime_verified=False)
             return result
         executable = shutil.which(command)
         if not executable:
@@ -391,7 +401,10 @@ def main() -> int:
             "required": dependency_required,
             "capabilities": dependency["capabilities"],
             "status": status,
-            "checks": failures if failures else [{"id": check["id"], "status": "ready", "reason_code": "ok"} for check in check_results],
+            "checks": failures if failures else [{"id": check["id"], "status": "ready", "reason_code": "ok",
+                                                   **{key: check[key] for key in ("detail", "executable", "discovery_only", "runtime_verified")
+                                                      if key in check and check.get("discovery_only")}}
+                                                  for check in check_results],
         }
         if status == "missing" and dependency_required:
             item["setup"] = filtered_setup(dependency["setup"])

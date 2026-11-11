@@ -8,6 +8,7 @@
     "frontend-implementation",
     "browser-screenshot",
     "image-comparison",
+    "project-validation",
     "acceptance-delivery"
   ],
   "dependencies": [
@@ -20,7 +21,8 @@
         "reference-preprocessing",
         "asset-inspection",
         "browser-screenshot",
-        "image-comparison"
+        "image-comparison",
+        "project-validation"
       ],
       "checks": [
         {
@@ -85,6 +87,16 @@
           "evidence_label": "未验证",
           "recovery": "安装符合版本的 Python 后重新运行对比",
           "stop_condition": "用户必须要求机器差异图且无法提供 Python 环境"
+        },
+        {
+          "capability": "project-validation",
+          "trigger": "Python 缺失或版本不符合要求",
+          "fallback": "宿主按当前规格和真实审批逐项检查，保留机器阶段校验未执行状态",
+          "user_input": "当前分析、文字和素材清单以及可追溯用户回复",
+          "limitations": "未执行规格、摘要、路径和冻结区域的自动校验，不宣称机器检查通过",
+          "evidence_label": "未验证",
+          "recovery": "取得符合要求的 Python 后由用户决定运行只读校验",
+          "stop_condition": "当前批准范围或关键输入不可靠且无法人工核验"
         }
       ]
     },
@@ -113,11 +125,11 @@
           "需要独立脚本时，由用户从官方页面安装支持无头模式的 Chrome 或 Chromium",
           "对用户批准的本地测试页进行固定视口截图"
         ],
-        "verify": "确认浏览器可启动，并对批准的测试页生成 PNG；PATH 检查不代表常见安装位置检测失败",
+        "verify": "环境检测与截图器共同发现 PATH 和常见安装位置；发现文件不证明运行成功，严格就绪另需已安装的 Python Playwright 或宿主浏览器能力",
         "rotate_or_revoke": "无凭据可轮换；关闭截图进程或由用户卸载浏览器、撤销目录权限",
         "security": "使用临时隔离资料目录，不读取个人浏览器资料；URL 不得包含凭据",
         "verified_at": "2026-10-28",
-        "applies_to_version": "支持当前无头模式、--screenshot 和 --window-size 的 Chrome 或 Chromium"
+        "applies_to_version": "本地 Chromium 系浏览器；CLI 无头参数和可选 Python Playwright 后端兼容性须实际运行核验"
       },
       "degradation": [
         {
@@ -203,6 +215,16 @@
       "evidence_label": "未验证",
       "recovery": "修正图片格式、尺寸或权限后重新比较",
       "stop_condition": "输入无法可靠解码或尺寸关系无法确认"
+    },
+    {
+      "capability": "project-validation",
+      "trigger": "规格、当前审批摘要、文件路径、截图报告或冻结回归不一致，或校验脚本不可运行",
+      "fallback": "停止受影响阶段，展示结构化错误并由用户核对真实审批与当前证据",
+      "user_input": "当前规格、可追溯批准范围、真实文件和配对截图证据",
+      "limitations": "校验器只检查明列文件和声明一致性，不能证明用户授权或每条代码修改合法，机器成功不等于视觉通过",
+      "evidence_label": "未验证",
+      "recovery": "修正实际规格与路径，必要时重新审核分析，再由用户决定运行校验",
+      "stop_condition": "未经当前分析确认，或关键规格和证据仍无法核对"
     },
     {
       "capability": "acceptance-delivery",
