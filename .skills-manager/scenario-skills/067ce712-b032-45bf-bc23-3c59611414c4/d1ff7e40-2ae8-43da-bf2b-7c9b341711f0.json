@@ -2,6 +2,15 @@
   "schema_version": 1,
   "scenario_id": "067ce712-b032-45bf-bc23-3c59611414c4",
   "skill_id": "d1ff7e40-2ae8-43da-bf2b-7c9b341711f0",
-  "sort_order": 8,
-  "tools": {}
+  "sort_order": 10,
+  "tools": {
+    "codex": true,
+    "deepseek_harness": true,
+    "qoder": true,
+    "qodercn": true,
+    "trae": true,
+    "trae_cn": true,
+    "workbuddy": true,
+    "workbuddy_overseas": true
+  }
 }
